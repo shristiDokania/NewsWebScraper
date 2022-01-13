@@ -4,63 +4,69 @@ const axios=require('axios')
 const cheerio=require('cheerio')
 const { response } = require('express')
 const { contains } = require('cheerio/lib/static')
-const { find } = require('cheerio/lib/api/traversing')
 
 const app=express()
-const jobs =[
+const newspapers =[
     {
-        name:'Indeed',
-        address:'https://in.indeed.com/Engineering-jobs?vjk=09f2f20985058ce1',
-        base:'https://in.indeed.com/'
+        name:'TimesofIndia',
+        address:'https://timesofindia.indiatimes.com/topic/climate-change',
+        base:'https://timesofindia.indiatimes.com/'
+    },
+    {
+        name:'Hindustantimes',
+        address:'https://www.hindustantimes.com/ht-insight/climate-change',
+        base:'https://www.hindustantimes.com/'
+    },
+    {
+        name:'UN Org',
+        address:'https://news.un.org/en/news/topic/climate-change',
+        base:'https://news.un.org/en/'
     }
 ]
 const article =[]
 
-// jobs.forEach(job=>{
-//     axios.get(job.address)
-//     .then(response=>{
-//         const html=response.data
-//         const $ =cheerio.load(html)
+newspapers.forEach(newspaper=>{
+    axios.get(newspaper.address)
+    .then(response=>{
+        const html=response.data
+        const $ =cheerio.load(html)
 
-//         $('.jobTitle:contains("Software")',html).each(function() {
-//             const title = $(this).text()
-//             //const url = $(this).attr('href')
-//             console.log(title)
+        $('a:contains("Climate")',html).each(function() {
+            const title = $(this).text()
+            const url = $(this).attr('href')
 
-//             // article.push({
-//             //             title,
-//             //            url: job.base +url,
-//             //            source: job.name
-//             //        })
-//         })
-//     })
-// })
+            article.push({
+                        title,
+                       url: newspaper.base +url,
+                       source: newspaper.name
+                   })
+        })
+    })
+})
 
 app.get('/',(req ,res)=>{
-    res.json('Welcome to my Job Search API')
+    res.json('Welcome to my Climate change News API')
 })
 
-app.get('/jobs',(req ,res)=>{
-    axios.get('https://in.indeed.com/jobs?q&l=India&vjk=b51201aa966c74ea')
-    .then((response)=>{
-        const html = response.data
-        const $=cheerio.load(html)
+app.get('/news',(req ,res)=>{
+    // axios.get('https://news.un.org/en/news/topic/climate-change')
+    // .then((response)=>{
+    //     const html = response.data
+    //     const $=cheerio.load(html)
 
-        $('#mosaic-provider-jobcards a',html).each(function(){
-            const title=$(this).attr('id')
-            const url = $(this).attr('href')
-            const base='https://in.indeed.com/?r=us'
-            article.push({
-                title,
-                url: base+url
-            })
-            console.log(article)
-        })
-        res.json(article)
-    }).catch((err)=>console.log(err))
-    //res.json(article)
+    //     $('a:contains("Climate")',html).each(function(){
+    //         const title=$(this).text()
+    //         const url = $(this).attr('href')
+    //         article.push({
+    //             title,
+    //             url
+    //         })
+    //     })
+    //     res.json(article)
+    // }).catch((err)=>console.log(err))
+    res.json(article)
 })
-/*
+
 app.get('/news/:newspaperId',async(req,res)=>{
     const newspaperId=req.params.newspaperId
 
@@ -86,7 +92,7 @@ app.get('/news/:newspaperId',async(req,res)=>{
         res.json(specificArticle)
     }).catch((err)=>console.log(err))
 })
-*/
+
 app.listen(PORT, ()=>console.log(`server is runing on port ${PORT}`))
 
 
